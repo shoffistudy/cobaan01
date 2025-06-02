@@ -1,0 +1,91 @@
+/* edit-klasifikasi.css */
+
+/* Container utama untuk halaman edit */
+.container {
+    max-width: 800px; /* Atur lebar maksimal sesuai kebutuhan */
+    width: 100%;
+    padding: 20px;
+    margin: auto;
+}
+
+/* Card untuk tampilan form edit */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    background-color: #fff;
+}
+
+/* Judul halaman */
+h4 {
+    font-weight: bold;
+    color: #002855;
+    margin-bottom: 20px;
+}
+
+/* Label untuk form */
+label {
+    font-weight: bold;
+}
+
+/* Group form untuk spasi antar elemen */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+/* Styling untuk input dan textarea */
+.form-control {
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+/* Styling khusus untuk textarea */
+textarea.form-control {
+    resize: vertical;
+}
+
+/* Tombol simpan */
+.btn-primary {
+    background-color: #002855;
+    border: none;
+    width: 100px;
+    float: right;
+    border-radius: 5px;
+}
+
+/* Tombol kembali */
+.btn-secondary {
+    margin-bottom: 20px;
+}
+
+/* Responsif untuk tampilan lebih kecil */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    h4 {
+        font-size: 1.5rem;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+    }
+
+    .btn-primary {
+        width: 100%;
+        margin-top: 10px;
+        float: none;
+    }
+}
+
+/* Tambahan responsif untuk tampilan dengan sidebar */
+@media (min-width: 992px) {
+    .container {
+        margin-left: 250px; /* Sesuaikan dengan lebar sidebar */
+    }
+}

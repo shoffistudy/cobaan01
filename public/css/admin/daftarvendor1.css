@@ -1,0 +1,277 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #003566;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 30px;
+    height: 100vh; /* Menambahkan tinggi penuh */
+    position: fixed; /* Menambahkan posisi tetap */
+}
+
+.sidebar-header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sidebar-logo {
+    width: 100px; /* Sesuaikan ukuran logo sesuai kebutuhan */
+    height: auto;
+    margin-bottom: 50px; /* Menambahkan jarak bawah antara logo dan tulisan */
+}
+
+.sidebar-menu {
+    list-style-type: none;
+    padding: 0;
+    width: 100%; /* Menambahkan lebar penuh untuk daftar */
+}
+
+.sidebar-menu li {
+    width: 100%; /* Menambahkan lebar penuh untuk item daftar */
+}
+
+.sidebar-menu a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    display: flex; /* Menambahkan tampilan flex untuk link */
+    align-items: center; /* Menyelaraskan ikon dan teks secara vertikal */
+    padding: 10px 20px;
+    margin-top: 10px;
+    transition: background-color 0.3s, color 0.3s; /* Menambahkan transisi untuk efek hover dan aktif */
+}
+
+.sidebar-menu a i {
+    margin-right: 10px; /* Menambahkan jarak antara ikon dan teks */
+}
+
+.sidebar-menu a:hover {
+    background-color: rgba(255, 255, 255, 0.3); /* Warna abu-abu transparan saat dihover */
+    margin-left: 3%;
+    margin-right: 3%;
+    border-radius: 5px;
+}
+
+.sidebar-menu a.active,
+.sidebar-menu a:active {
+    background-color: #fff; /* Warna putih saat aktif */
+    color: #000; /* Teks hitam saat aktif */
+    border-radius: 5px;
+    margin-right: 3%;
+    margin-left: 3%;
+}
+
+.collapse-button {
+    margin-top: auto;
+    margin-bottom: 15%;
+    padding: 10px;
+    background-color: #001D3D;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+}
+
+.collapse-button i {
+    transition: transform 0.3s ease;
+}
+
+.sidebar.collapsed {
+    width: 0;
+    overflow: hidden;
+    transition: width 0.3s ease;
+}
+
+.sidebar.collapsed .sidebar-logo,
+.sidebar.collapsed .user-info,
+.sidebar.collapsed .sidebar-menu,
+.sidebar.collapsed .collapse-button {
+    display: none;
+}
+
+.content {
+    flex: 1;
+    margin-left: 250px;
+    padding: 20px;
+    position: relative;
+    transition: margin-left 0.3s ease;
+}
+
+.content.expanded {
+    margin-left: 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.menu {
+    cursor: pointer;
+}
+
+.menu i {
+    font-size: 25px; /* Ukuran ikon */
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+}
+
+.search-bar input {
+    padding: 5px 10px;
+    width: 200%;
+    height: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px 0 0 5px;
+    outline: none;
+}
+
+.search-bar button {
+    padding: 5px 10px;
+    border: none;
+    background-color: #003566;
+    color: white;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+}
+
+.search-bar button:hover {
+    background-color: #001D3D;
+
+}
+
+.content {
+    background-color: #E6EBF0;
+    flex: 1;
+    margin-left: 250px; /* Menambahkan margin kiri untuk menghindari sidebar */
+    padding: 20px;
+    position: relative; /* Tambahkan posisi relatif */
+}
+
+.content h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    margin-top: 0%;
+    padding-top: 50px;
+    padding-left: 5px;
+}
+
+.underline {
+    width: 30%;
+    height: 2px;
+    background-color: black;
+    margin-bottom: 10px;
+}
+
+.vendor-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding-top: 1%;
+}
+
+.vendor-card {
+    background-color: white;
+    padding: 20px;
+    height: 90%;
+    width: 80%;
+    border-radius: 10px;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.vendor-card.selected {
+    border: 3px solid #2189f8;
+}
+
+.check-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 15px;
+    height: 15px;
+    background-color: rgb(57, 112, 238);
+    border: 2px solid rgb(63, 63, 240);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    display: none;
+    color: rgb(248, 248, 250);
+}
+
+.vendor-card.selected .check-icon {
+    display: block;
+    color: rgb(249, 249, 250);
+}
+
+.vendor-card h2 {
+    font-size: 18px;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 10px;
+}
+
+.vendor-card .underline {
+    width: 100%;
+    height: 2px;
+    background-color: black;
+    margin-bottom: 10px;
+}
+
+.vendor-card p {
+    font-size: 14px;
+    color: black;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.tags {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    padding-top: 5%;
+}
+
+.tag {
+    background-color: #FFF2B3;
+    color: #000;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+}
+
+.select-button {
+    position: absolute; /* Menambahkan posisi absolut */
+    bottom: 20px; /* Sesuaikan jarak dari bawah */
+    right: 20px; /* Sesuaikan jarak dari kanan */
+    padding: 10px 20px;
+    background-color: #001D3D; /* Warna latar belakang */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.select-button:hover {
+    background-color: #FFC300; /* Warna saat tombol di-hover */
+}

@@ -1,0 +1,181 @@
+.card {
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.card:nth-child(2) {
+    background-color: #fff3cd;
+}
+
+.card-icon {
+    font-size: 2em;
+    margin-bottom: 0;
+}
+
+.card-content {
+    flex-grow: 1;
+}
+
+.card-content h4 {
+    margin: 0 10px;
+    font-size: 1.2em;
+    margin-top: 0%;
+}
+
+.card-content p {
+    font-size: 1em;
+    color: #6c757d;
+    line-height: 1.5; /* Atur jarak baris sesuai kebutuhan */
+    margin-top: 10px;
+}
+
+.card-actions {
+    display: flex;
+    justify-content: flex-end; /* Mengatur tombol ke kanan */
+    gap: 10px;
+    margin-top: 20px; /* Menambahkan jarak atas agar tombol tidak terlalu dekat dengan konten kartu */
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: bold;
+    text-align: center;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.dialog {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.dialog-content {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.close {
+    float: right;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.drop-zone {
+    border: 2px dashed #001D3D;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.drop-zone input[type="file"] {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.drop-zone .fas {
+    font-size: 2rem;
+    color: #001D3D;
+    margin-bottom: 10px;
+}
+
+.browse-btn {
+    background: #001D3D;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"] {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: calc(100% - 25px);
+    height: auto;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the bottom-right */
+    margin-top: 20px;
+}
+
+.btn.secondary {
+    background: #001D3D;
+    color: white;
+    border: 1px solid #ccc;
+}
+
+.btn.primary {
+    background-color: #001D3D; /* Blue background for the primary button */
+    color: white; /* White text for the primary button */
+    border: 1px solid #ccc;
+}
+
+.btn.secondary:hover {
+    background-color: #5f7389; /* Warna latar belakang saat hover */
+}
+
+.btn.primary:hover {
+    background-color: #5f7389; /* Darker blue background on hover */
+}
+
+#upload-button i {
+    margin-right: 5px; /* Menambahkan jarak antara ikon dan teks */
+}
+
+.card-content h4 {
+    margin-left: 70px;
+}
+
+.card-content p {
+    margin-left: 70px;
+}

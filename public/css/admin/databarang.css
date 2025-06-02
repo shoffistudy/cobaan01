@@ -1,0 +1,76 @@
+.container-responsive {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+
+}
+
+.table-header {
+    background-color: #003566;
+    color: white;
+    text-align: center;
+}
+
+
+/* Gaya untuk tombol tambah */
+.add-button {
+    background-color: #022047;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.table-row:nth-child(odd) {
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.table-row:nth-child(even) {
+    background-color: #e8edf3;
+    text-align: center;
+}
+
+.search-bar {
+    border-radius: 0 0 0 5px;
+    border-right: none;
+    width: 200px;
+}
+
+.search-button {
+    border-radius: 0 5px 5px 0;
+}
+
+.add-button {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.badge-active, .badge-nonaktif {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.badge-active {
+    background-color: #e7f8e7;
+    color: #5285d7;
+}
+
+.badge-nonaktif {
+    background-color: #f8e7e7;
+    color: #dc3545;
+}
+
+.action-button, .edit-button {
+    border-radius: 10px;
+    padding: 5px 10px;
+}
+
+.action-button {
+    background-color: #ffc107;
+    margin-right: 5px;
+}
+
+.edit-button {
+    background-color: #001D3D;
+    color: white;
+}

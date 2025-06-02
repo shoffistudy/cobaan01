@@ -1,0 +1,65 @@
+.table {
+    background-color: #ffffff;
+}
+
+.thead-custom {
+    background-color: #003566; /* Warna ungu muda */
+    color: #ffffff;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+.btn-edit {
+    background-color: #2c3e50; /* Biru dongker */
+    border-color: #2c3e50;
+    color: #ffffff;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.fa-file-alt {
+    color: #007bff;
+}
+
+.fa-ban {
+    color: #dc3545;
+}
+
+.pagination .page-item .page-link {
+    color: #007bff;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.pagination .page-item .page-link:hover {
+    color: #0056b3;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+.search-bar {
+    width: 300px;
+}
+
+.input-group-append .btn {
+    border: 1px solid #ced4da;
+}
+
+.btn-add {
+    background-color:#001D3D;
+    border-color:#001D3D;
+    color: #ffffff;
+}
+
+.btn-add:hover {
+    background-color: #a3a6af; /* Warna biru muda saat di-hover */
+    border-color: #add8e6;
+}

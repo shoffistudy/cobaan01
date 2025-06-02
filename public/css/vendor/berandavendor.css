@@ -1,0 +1,47 @@
+
+.card {
+    flex: 1 1 calc(25% - 20px);
+    background: #f0f0f0;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.card h2 {
+    margin: 10px 0 0;
+    font-size: 2.5em;
+}
+
+.card.yellow {
+    background-color: #FFC107;
+    color: #000;
+}
+
+.card.blue {
+    background-color: #007BFF;
+    color: #fff;
+}
+
+.card.black {
+    background-color: #343A40;
+    color: #fff;
+}
+
+.chart {
+    flex: 1 1 calc(50% - 20px);
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.collapsed + .main-content {
+    margin-left: 70px;
+    width: calc(100% - 70px);
+}

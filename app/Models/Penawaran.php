@@ -22,7 +22,7 @@ class Penawaran extends Model
      * @var array
      */
     protected $fillable = [
-        'perbandingan_harga_id',
+        'perbandingan_id',
         'vendor_id',
         'ketentuan_pembayaran',
         'status',
@@ -46,7 +46,7 @@ class Penawaran extends Model
      */
     public function perbandinganHarga()
     {
-        return $this->belongsTo(PerbandinganHarga::class, 'perbandingan_harga_id');
+        return $this->belongsTo(PerbandinganHarga::class, 'perbandingan_id');
     }
 
     /**

@@ -15,6 +15,11 @@ class PerbandinganHargaItemBarang extends Model
 
     public function pengajuanDetail()
     {
-        return  $this->belongsTo(PengajuanPembelianBarangDetail::class, 'pengajuan_detail_id');
+        return $this->belongsTo(PengajuanPembelianBarangDetail::class, 'pengajuan_barang_detail_id');
+    }
+
+    public function perbandinganVendor()
+    {
+        return $this->belongsTo(PerbandinganHargaVendor::class, 'perbandingan_vendor_id');
     }
 }

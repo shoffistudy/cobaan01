@@ -24,39 +24,21 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+   public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = $request->user();
+
+        // Redirect berdasarkan role
+        if ($user->hasRole('vendor_rekanan')) {
+            return redirect()->intended('/dashboard');
+        }
+
+        return redirect()->intended('/dashboard');
     }
 
-    // public function store(LoginRequest $request): RedirectResponse
-    // {
-    //     $credentials = $request->only('email', 'password');
-    
-    //     // Tentukan guard sesuai role yang dipilih
-    //     $role = $request->input('role');
-    //     if ($role == 'admin_logistik' || $role == 'divisi') {
-    //         // Cek login untuk admin_logistik atau divisi
-    //         if (Auth::guard('web')->attempt($credentials)) {
-    //             $request->session()->regenerate();
-    //             return redirect()->intended(route('dashboard'));
-    //         }
-    //     } elseif ($role == 'vendor') {
-    //         // Cek login untuk vendor
-    //         if (Auth::guard('vendor')->attempt($credentials)) {
-    //             $request->session()->regenerate();
-    //             return redirect()->intended(route('dashboardvendor'));
-    //         }
-    //     }
-    
-    //     return back()->withErrors([
-    //         'email' => 'Login gagal. Periksa kembali email dan password.',
-    //     ]);
-    // }
 
     /**
      * Destroy an authenticated session.

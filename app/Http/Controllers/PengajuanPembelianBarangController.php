@@ -11,6 +11,8 @@ use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ExportRiwayat;
 use App\Models\RiwayatBarang;
+use App\Imports\BarangImport;
+use App\Exports\TemplateBarangExport;
 use App\Notifications\NotificationHandler;
 use Illuminate\Support\Facades\Notification;
 use App\Models\Notification as ModelsNotification;
@@ -261,74 +263,74 @@ class PengajuanPembelianBarangController extends Controller
     /**
     * Download template Excel untuk input barang
     */
-    // public function downloadTemplate()
-    // {
-    //     return Excel::download(new TemplateBarangExport, 'template_barang_pengajuan.xlsx');
-    // }
+    public function downloadTemplate()
+    {
+        return Excel::download(new TemplateBarangExport, 'template_barang_pengajuan.xlsx');
+    }
 
     // /**
     //  * Upload dan parse Excel file
     //  */
-    // public function uploadExcel(Request $request)
-    // {
-    //     $request->validate([
-    //         'excel_file' => 'required|file|mimes:xlsx,xls|max:2048'
-    //     ], [
-    //         'excel_file.required' => 'File Excel harus dipilih',
-    //         'excel_file.file' => 'File yang dipilih tidak valid',
-    //         'excel_file.mimes' => 'File harus berformat Excel (.xlsx atau .xls)',
-    //         'excel_file.max' => 'Ukuran file maksimal 2MB'
-    //     ]);
+    public function uploadExcel(Request $request)
+    {
+        $request->validate([
+            'excel_file' => 'required|file|mimes:xlsx,xls|max:2048'
+        ], [
+            'excel_file.required' => 'File Excel harus dipilih',
+            'excel_file.file' => 'File yang dipilih tidak valid',
+            'excel_file.mimes' => 'File harus berformat Excel (.xlsx atau .xls)',
+            'excel_file.max' => 'Ukuran file maksimal 2MB'
+        ]);
 
-    //     try {
-    //         $import = new BarangImport;
-    //         Excel::import($import, $request->file('excel_file'));
+        try {
+            $import = new BarangImport;
+            Excel::import($import, $request->file('excel_file'));
             
-    //         $data = $import->getData();
+            $data = $import->getData();
             
-    //         if (empty($data)) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'File Excel kosong atau tidak memiliki data yang valid'
-    //             ]);
-    //         }
+            if (empty($data)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File Excel kosong atau tidak memiliki data yang valid'
+                ]);
+            }
 
-    //         // Format data untuk frontend
-    //         $formattedData = [];
-    //         foreach ($data as $row) {
-    //             $formattedData[] = [
-    //                 'nama_barang' => $row['nama_barang'] ?? '',
-    //                 'spesifikasi' => $row['spesifikasi'] ?? '',
-    //                 'jumlah' => $row['jumlah'] ?? '',
-    //                 'harga_satuan' => $row['harga_satuan'] ?? ''
-    //             ];
-    //         }
+            // Format data untuk frontend
+            $formattedData = [];
+            foreach ($data as $row) {
+                $formattedData[] = [
+                    'nama_barang' => $row['nama_barang'] ?? '',
+                    'spesifikasi' => $row['spesifikasi'] ?? '',
+                    'jumlah' => $row['jumlah'] ?? '',
+                    'harga_satuan' => $row['harga_satuan'] ?? ''
+                ];
+            }
 
-    //         return response()->json([
-    //             'success' => true,
-    //             'data' => $formattedData,
-    //             'message' => 'File Excel berhasil diproses. ' . count($formattedData) . ' item ditemukan.'
-    //         ]);
+            return response()->json([
+                'success' => true,
+                'data' => $formattedData,
+                'message' => 'File Excel berhasil diproses. ' . count($formattedData) . ' item ditemukan.'
+            ]);
 
-    //     } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-    //         $failures = $e->failures();
-    //         $errors = [];
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            $errors = [];
             
-    //         foreach ($failures as $failure) {
-    //             $errors[] = "Baris {$failure->row()}: " . implode(', ', $failure->errors());
-    //         }
+            foreach ($failures as $failure) {
+                $errors[] = "Baris {$failure->row()}: " . implode(', ', $failure->errors());
+            }
 
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Validasi gagal',
-    //             'errors' => $errors
-    //         ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $errors
+            ]);
 
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Terjadi kesalahan saat memproses file: ' . $e->getMessage()
-    //         ]);
-    //     }
-    // }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memproses file: ' . $e->getMessage()
+            ]);
+        }
+    }
 }

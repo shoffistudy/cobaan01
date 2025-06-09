@@ -52,7 +52,63 @@ class PerbandinganHarga extends Model
         return $this->belongsTo(User::class);
     }
 
-    // Scope dan Helper Methods
+    // Relasi ke vendor via pivot
+    public function vendors()
+    {
+        return $this->belongsToMany(Vendor::class, 'perbandingan_harga_vendor', 'perbandingan_id', 'vendor_id')
+            ->withPivot([
+                'status_penawaran',
+                'tanggal_respon',
+                // 'catatan_vendor',
+                'batas_waktu_penawaran',
+            ])
+            // ->withTimestamps();
+            ;
+    }
+
+    // Relasi ke item barang yang dibandingkan
+    public function perbandinganHargaItemBarang()
+    {
+        return $this->hasMany(PerbandinganHargaItemBarang::class);
+    }
+
+     public function getListVendorWithHargaBarang()
+    {
+        $vendors = $this->perbandinganHargaVendor()->with(['vendor', 'hargaBarangIndexed'])->get();
+
+        $list_vendor = [];
+
+        foreach ($vendors as $vendor) {
+            $nama_vendor = $vendor->vendor->nama;
+            $list_vendor[$nama_vendor] = [];
+
+            foreach ($vendor->hargaBarangIndexed as $barang) {
+                $list_vendor[$nama_vendor][$barang->pengajuan_barang_detail_id] = [
+                    'harga_satuan' => $barang->harga_satuan,
+                    'total_harga' => $barang->harga_satuan * $barang->jumlah,
+                    'pemesanan' => $barang->pemesanan,
+                ];
+            }
+        }
+
+        return $list_vendor;
+    }
+
+    // Ambil vendor tertentu dari pivot
+    public function vendorPivot($vendorId)
+    {
+        return $this->vendors()->where('vendor_id', $vendorId)->first()?->pivot;
+    }
+
+    // Cek apakah penawaran masih aktif untuk vendor tertentu
+    public function isPenawaranAktifUntukVendor($vendorId)
+    {
+        $pivot = $this->vendorPivot($vendorId);
+        return $pivot && now()->lessThan($pivot->batas_waktu);
+    }
+
+
+    // Scope dan Helper Methods --- gak perlu sih ini --
     public function scopeStatus($query, $status)
     {
         return $query->where('status', $status);

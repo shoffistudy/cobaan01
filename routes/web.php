@@ -77,7 +77,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('pilih-pengajuan/{pengajuan:nomor}', [PerbandinganHargaController::class, 'pilihPengajuan'])->name('pilih-pengajuan');
         Route::get('vendor/{perbandingan_harga}', [PerbandinganHargaController::class, 'listVendor'])->name('list-vendor');
         Route::get('tambah-vendor/{perbandingan_harga}', [PerbandinganHargaController::class, 'tambahVendor'])->name('tambah-vendor');
-        //ini ditabah satu dibawah
         Route::post('kirim-penawaran/{perbandingan_harga}', [PerbandinganHargaController::class, 'kirimPenawaran'])->name('kirim-penawaran');
         Route::post('vendor/{perbandingan_harga}', [PerbandinganHargaController::class, 'simpanVendor'])->name('simpan-vendor');
         Route::get('edit-vendor/{perbandingan_harga_vendor}', [PerbandinganHargaController::class, 'editVendor'])->name('edit-vendor');
@@ -85,47 +84,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('vendor/{perbandingan_harga_vendor}', [PerbandinganHargaController::class, 'deleteVendor'])->name('delete-vendor');
         Route::post('selesai/{perbandingan_harga}', [PerbandinganHargaController::class, 'tandaiSelesai'])->name('tandai-selesai');
 
-        Route::get('konfirmasi-undangan/{perbandingan_harga_vendor}', [PerbandinganHargaController::class, 'konfirmasiUndangan'])
-            ->name('perbandingan-harga.konfirmasi-undangan');
+        Route::get('konfirmasi-undangan/{perbandingan_harga_vendor}', [PerbandinganHargaController::class, 'konfirmasiUndangan'])->name('konfirmasi-undangan');
+        Route::post('konfirmasi-undangan/{perbandingan_harga_vendor}', [PerbandinganHargaController::class, 'prosesKonfirmasiUndangan'])->name('proses-konfirmasi-undangan');
 
-        Route::post('konfirmasi-undangan/{perbandingan_harga_vendor}', [PerbandinganHargaController::class, 'prosesKonfirmasiUndangan'])
-            ->name('perbandingan-harga.proses-konfirmasi-undangan');
-
+        // Form isi harga & submit (vendor)
+        Route::get('isi-harga/{perbandingan_harga_vendor}', [PerbandinganHargaController::class, 'isiHargaVendor'])->name('isi-harga');
+        Route::post('simpan-harga/{perbandingan_harga_vendor}', [PerbandinganHargaController::class, 'simpanHargaVendor'])->name('simpan-harga');
     });
+
+    // Resource utama
     Route::resource('perbandingan-harga', PerbandinganHargaController::class)->except(['destroy', 'show']);
 
-    // Routes untuk Perbandingan Harga dengan Alur Penawaran & Negosiasi Terpisah
-    // Route::group(['prefix' => 'perbandingan-harga', 'as' => 'perbandingan-harga.'], function () {
-    //     // Routes yang sudah ada (tetap dipertahankan)
-    //     Route::get('cari-pengajuan', [PerbandinganHargaController::class, 'cariPengajuan'])->name('cari-pengajuan');
-    //     Route::get('pilih-pengajuan/{pengajuan:nomor}', [PerbandinganHargaController::class, 'pilihPengajuan'])->name('pilih-pengajuan');
-    //     Route::get('vendor/{perbandingan_harga}', [PerbandinganHargaController::class, 'listVendor'])->name('list-vendor');
-        
-    //     // ALUR PENAWARAN - Admin Side
-    //     Route::get('pilih-vendor/{perbandingan_harga}', [PerbandinganHargaController::class, 'pilihVendor'])->name('pilih-vendor');
-    //     Route::post('kirim-penawaran/{perbandingan_harga}', [PerbandinganHargaController::class, 'kirimPenawaran'])->name('kirim-penawaran');
-    //     Route::post('mulai-negosiasi/{perbandingan_harga}', [PerbandinganHargaController::class, 'mulaiNegosiasi'])->name('mulai-negosiasi');
-    //     Route::post('tentukan-pemenang/{perbandingan_harga}', [PerbandinganHargaController::class, 'tentukanPemenang'])->name('tentukan-pemenang');
-        
-    //     // Routes lama yang masih diperlukan
-    //     Route::get('tambah-vendor/{perbandingan_harga}', [PerbandinganHargaController::class, 'tambahVendor'])->name('tambah-vendor');
-    //     Route::delete('vendor/{perbandingan_harga_vendor}', [PerbandinganHargaController::class, 'deleteVendor'])->name('delete-vendor');
-    // });
-
-    // // ALUR PENAWARAN - Vendor Side
-    // Route::group(['prefix' => 'penawaran', 'as' => 'penawaran.'], function () {
-    //     Route::get('detail/{perbandingan_harga}', [PerbandinganHargaController::class, 'detailPenawaran'])->name('detail');
-    //     Route::post('respon/{perbandingan_harga}', [PerbandinganHargaController::class, 'responPenawaran'])->name('respon');
-    // });
-
-    // // ALUR NEGOSIASI - Vendor Side  
-    // Route::group(['prefix' => 'negosiasi', 'as' => 'negosiasi.'], function () {
-    //     Route::get('detail/{perbandingan_harga}', [PerbandinganHargaController::class, 'detailNegosiasi'])->name('detail');
-    //     Route::post('simpan/{perbandingan_harga}', [PerbandinganHargaController::class, 'simpanNegosiasi'])->name('simpan');
-    // });
-
-    // // Resource route untuk CRUD dasar
-    // Route::resource('perbandingan-harga', PerbandinganHargaController::class)->except(['destroy', 'show']);
+    // Halaman vendor
+    Route::get('perbandingan-harga/vendor', [PerbandinganHargaController::class, 'listVendorForVendor'])
+        ->name('perbandingan-harga.vendor.index');
 
     
     /*
@@ -180,18 +152,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     // routes/web.php - RFQ Routes
-    Route::prefix('rfq')->name('rfq.')->group(function () {
-        Route::get('/', [RfqController::class, 'index'])->name('index');
-        Route::get('/create', [RfqController::class, 'create'])->name('create');
-        Route::post('/', [RfqController::class, 'store'])->name('store');
-        Route::get('/{rfq}', [RfqController::class, 'show'])->name('show');
-        Route::get('/{rfq}/edit', [RfqController::class, 'edit'])->name('edit');
-        Route::put('/{rfq}', [RfqController::class, 'update'])->name('update');
-        Route::post('/{rfq}/send', [RfqController::class, 'sendToVendors'])->name('send');
-        Route::post('/{rfq}/close', [RfqController::class, 'closeRfq'])->name('close');
-        Route::post('/{rfq}/select', [RfqController::class, 'selectQuotation'])->name('select');
-        Route::delete('/{rfq}', [RfqController::class, 'destroy'])->name('destroy');
-    });
+    // Route::prefix('rfq')->name('rfq.')->group(function () {
+    //     Route::get('/', [RfqController::class, 'index'])->name('index');
+    //     Route::get('/create', [RfqController::class, 'create'])->name('create');
+    //     Route::post('/', [RfqController::class, 'store'])->name('store');
+    //     Route::get('/{rfq}', [RfqController::class, 'show'])->name('show');
+    //     Route::get('/{rfq}/edit', [RfqController::class, 'edit'])->name('edit');
+    //     Route::put('/{rfq}', [RfqController::class, 'update'])->name('update');
+    //     Route::post('/{rfq}/send', [RfqController::class, 'sendToVendors'])->name('send');
+    //     Route::post('/{rfq}/close', [RfqController::class, 'closeRfq'])->name('close');
+    //     Route::post('/{rfq}/select', [RfqController::class, 'selectQuotation'])->name('select');
+    //     Route::delete('/{rfq}', [RfqController::class, 'destroy'])->name('destroy');
+    // });
 
     /*
     |-------------------------------------------------------------------------- 

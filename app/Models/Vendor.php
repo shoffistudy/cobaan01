@@ -4,68 +4,55 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Auth\User as Authenticatable; //untuk login
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-
-class Vendor extends Authenticatable
+class Vendor extends Model
 {
-    use HasRoles;
+    use HasFactory, Notifiable, HasRoles;
 
     public $timestamps = false;
-    
+
     protected $table = 'vendor';
-    //protected $guard_name = 'web';
+
     protected $guarded = ['id'];
-    
-    
+
     protected $hidden = [
         'password', 'remember_token',
     ];
 
-    // Tambahkan di dalam class Vendor:
+    protected $guard_name = 'web'; // default guard untuk spatie permission
 
-    public function rfqs()
+    /**
+     * Perbandingan harga yang ditujukan ke vendor ini
+     */
+    public function perbandinganHargas()
     {
-        return $this->belongsToMany(Rfq::class, 'rfq_vendors')
-                ->withPivot(['status', 'responded_at', 'reject_reason'])
-                ->withTimestamps();
+        return $this->belongsToMany(PerbandinganHarga::class, 'perbandingan_harga_vendor', 'vendor_id', 'perbandingan_id')
+            ->withPivot([
+                'status_penawaran',
+                'tanggal_respon',
+                // 'catatan_vendor',
+                'batas_waktu_penawaran',
+            ])
+            // ->withTimestamps();
+            ;
     }
 
-    public function rfqVendors()
+    /**
+     * Ambil penawaran yang masih aktif (belum lewat batas waktu)
+     */
+    public function penawaranAktif()
     {
-        return $this->hasMany(RfqVendor::class);
+        return $this->perbandinganHargas()->wherePivot('batas_waktu', '>=', now());
     }
 
-    public function quotations()
+    /**
+     * Ambil penawaran yang sudah kadaluarsa
+     */
+    public function penawaranKadaluarsa()
     {
-        return $this->hasMany(VendorQuotation::class, 'rfq_vendor_id', 'id')
-                ->join('rfq_vendors', 'vendor_quotations.rfq_vendor_id', '=', 'rfq_vendors.id')
-                ->where('rfq_vendors.vendor_id', $this->id);
-    }
-
-    // Method helper untuk vendor
-    public function getActiveRfqs()
-    {
-        return $this->rfqVendors()
-                ->with('rfq')
-                ->whereHas('rfq', function($q) {
-                    $q->where('status', Rfq::STATUS_BERLANGSUNG)
-                        ->where('deadline', '>', now());
-                });
-    }
-
-    public function getPendingRfqs()
-    {
-        return $this->rfqVendors()
-                ->with('rfq')
-                ->where('status', RfqVendor::STATUS_DITAWARKAN)
-                ->whereHas('rfq', function($q) {
-                    $q->where('status', Rfq::STATUS_BERLANGSUNG)
-                        ->where('deadline', '>', now());
-                });
+        return $this->perbandinganHargas()->wherePivot('batas_waktu', '<', now());
     }
 }

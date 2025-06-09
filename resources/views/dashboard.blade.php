@@ -51,7 +51,7 @@
                 @endif
 
                 <!-- Show pemesanan card to admin_logistik and vendor -->
-                @if(auth()->user()->hasRole(['admin_logistik', 'vendor']))
+                @if(auth()->user()->hasRole(['admin_logistik', 'vendor_rekanan']))
                 <!-- Card 3 - Total Pemesanan -->
                 <a href="{{ url('/pemesanan-barang') }}">
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border-l-4 border-teal-500 hover:bg-teal-50 dark:hover:bg-gray-700 transition duration-200 cursor-pointer">

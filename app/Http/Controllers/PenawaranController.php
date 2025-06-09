@@ -75,7 +75,7 @@ class PenawaranController extends Controller
         DB::beginTransaction();
         try {
             // Cek jika vendor sudah memberikan penawaran untuk perbandingan ini
-            $existing = PerbandinganHargaVendor::where('perbandingan_harga_id', $perbandingan->id)
+            $existing = PerbandinganHargaVendor::where('perbandingan_id', $perbandingan->id)
                 ->where('vendor_id', $request->vendor)
                 ->first();
 
@@ -85,7 +85,7 @@ class PenawaranController extends Controller
 
             // Buat penawaran baru
             $vendor_penawaran = new PerbandinganHargaVendor();
-            $vendor_penawaran->perbandingan_harga_id = $perbandingan->id;
+            $vendor_penawaran->perbandingan_id = $perbandingan->id;
             $vendor_penawaran->vendor_id = $request->vendor;
             $vendor_penawaran->ketentuan_pembayaran = $request->ketentuan_pembayaran;
             $vendor_penawaran->diproses = true; // Tandai sudah diproses
@@ -174,7 +174,7 @@ class PenawaranController extends Controller
 
             DB::commit();
 
-            return redirect()->route('perbandingan-harga.list-vendor', $perbandingan_vendor->perbandingan_harga_id)
+            return redirect()->route('perbandingan-harga.list-vendor', $perbandingan_vendor->perbandingan_id)
                 ->with('success', 'Penawaran harga berhasil diperbarui');
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -213,7 +213,7 @@ class PenawaranController extends Controller
 
             DB::commit();
 
-            return redirect()->route('perbandingan-harga.list-vendor', $perbandingan_vendor->perbandingan_harga_id)
+            return redirect()->route('perbandingan-harga.list-vendor', $perbandingan_vendor->perbandingan_id)
                 ->with('success', 'Penawaran harga berhasil dihapus');
         } catch (\Throwable $th) {
             DB::rollBack();

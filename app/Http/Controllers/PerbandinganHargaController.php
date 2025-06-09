@@ -29,10 +29,28 @@ class PerbandinganHargaController extends Controller
             return abort(403, 'Kamu tidak memiliki hak akses ke halaman ini');
         }
 
-        $list_perbandingan = PerbandinganHarga::withCount([
-            'pemesanan' => fn ($query) => $query->where('batal', 0)
-        ])->with('pengajuan', 'user')->paginate(10);
-        return view('pages.perbandingan', compact('list_perbandingan'));
+         if ($user->hasRole('vendor_rekanan')) {
+            $vendorId = $user->vendor->id ?? null;
+
+            $list_penawaran = PerbandinganHarga::whereHas('perbandinganHargaVendor', function ($query) use ($vendorId) {
+                    $query->where('vendor_id', $vendorId);
+                })
+                ->with(['perbandinganHargaVendor' => function ($query) use ($vendorId) {
+                    $query->where('vendor_id', $vendorId);
+                }])
+                ->orderBy('tanggal', 'desc')
+                ->paginate(10);
+
+            return view('pages.perbandingan-vendor.index', compact('list_penawaran'));
+        } else {
+            $list_perbandingan = PerbandinganHarga::withCount([
+                    'pemesanan' => fn ($query) => $query->where('batal', 0)
+                ])
+                ->with('pengajuan', 'user')
+                ->paginate(10);
+
+            return view('pages.perbandingan', compact('list_perbandingan'));
+        }
     }
 
     public function create(PerbandinganHarga $perbandinganHarga)
@@ -133,26 +151,13 @@ class PerbandinganHargaController extends Controller
 
     public function listVendor(PerbandinganHarga $perbandingan_harga)
     {
-        $perbandingan_harga->load(
+        $perbandingan_harga->load([
             'pengajuanDetail',
-            'perbandinganHargaVendor.perbandinganHargaItemBarang',
-            'perbandinganHargaVendor.vendor'
-        );
+            'perbandinganHargaVendor.vendor',
+            'perbandinganHargaVendor.hargaBarangIndexed'
+        ]);
 
-        $list_vendor = [];
-        foreach ($perbandingan_harga->perbandinganHargaVendor as $perbandingan_harga_vendor) {
-            $nama_vendor = $perbandingan_harga_vendor->vendor->nama;
-            $list_vendor[$nama_vendor] = $perbandingan_harga_vendor->perbandinganHargaItemBarang
-                ->keyBy('pengajuan_barang_detail_id')
-                ->map(function ($item) {
-                    return [
-                        'nama_barang' => $item->nama_barang,
-                        'harga_satuan' => $item->harga_satuan,
-                        'total_harga' => $item->jumlah * $item->harga_satuan,
-                        'pemesanan' => $item->pemesanan
-                    ];
-                })->toArray();
-        }
+        $list_vendor = $perbandingan_harga->getListVendorWithHargaBarang();
 
         return view('pages.perbandingan-list-vendor', [
             'perbandingan' => $perbandingan_harga,
@@ -179,7 +184,7 @@ class PerbandinganHargaController extends Controller
         ]);
     }
 
-   public function simpanVendor(Request $request, PerbandinganHarga $perbandingan_harga)
+   public function simpanVendor(Request $request, $id)
     {
         $request->validate([
             'vendor_ids' => 'required|array',
@@ -188,64 +193,182 @@ class PerbandinganHargaController extends Controller
         ]);
 
         DB::beginTransaction();
+
         try {
-            $batasWaktu = $request->batas_waktu_penawaran;
+            $perbandingan = PerbandinganHarga::findOrFail($id);
 
-            foreach ($request->vendor_ids as $vendor_id) {
-                $vendor = Vendor::find($vendor_id);
+            foreach ($request->vendor_ids as $vendorId) {
+                // Cek apakah vendor sudah pernah ditambahkan
+                $existing = $perbandingan->vendors()->where('vendor_id', $vendorId)->exists();
 
-                $perbandingan_harga->perbandinganHargaVendor()->create([
-                    'vendor_id' => $vendor->id,
-                    'pic' => $vendor->pic,
-                    'kontak_pic' => $vendor->kontak_pic,
-                    'ketentuan_pembayaran' => null,
-                    'status_penawaran' => 'penawaran',
-                    'batas_waktu_penawaran' => $batasWaktu
-                ]);
+                if (!$existing) {
+                   $vendor = Vendor::findOrFail($vendorId); // ambil data vendor
+
+                    $perbandingan->vendors()->attach($vendorId, [
+                        'status_penawaran' => 'pending',
+                        'tanggal_respon' => null,
+                        'batas_waktu_penawaran' => $request->batas_waktu_penawaran,
+                        'pic' => $vendor->pic, // isi otomatis dari tabel vendor
+                        'kontak_pic' => $vendor->kontak_pic,
+                    ]);
+
+                }
             }
 
             DB::commit();
-            return redirect()->route('perbandingan-harga.list-vendor', $perbandingan_harga->id)
-                            ->with('success', 'Vendor berhasil ditambahkan');
+
+            return redirect()->route('perbandingan-harga.list-vendor', $perbandingan->id)
+                ->with('success', 'Undangan berhasil dikirim ke vendor terpilih.');
         } catch (\Throwable $th) {
             DB::rollBack();
-            return back()->with('error', $th->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $th->getMessage());
         }
-    }   
+    }
 
 
     public function konfirmasiUndangan(PerbandinganHargaVendor $perbandingan_harga_vendor)
     {
-         /**
-         * @var \App\Models\User
-         */
         $user = Auth::user();
+
         if ($user->vendor->id !== $perbandingan_harga_vendor->vendor_id) {
             abort(403);
         }
 
-        return view('vendor.konfirmasi-undangan', compact('perbandingan_harga_vendor'));
+        // Tambahkan eager loading
+        $perbandingan_harga_vendor->load('perbandinganHarga.pengajuanDetail', 'vendor', 'perbandinganHarga.user');
+
+        // Cek jika sudah melewati batas waktu
+        if (
+            $perbandingan_harga_vendor->status_penawaran === 'pending' &&
+            $perbandingan_harga_vendor->batas_waktu_penawaran &&
+            now()->gt($perbandingan_harga_vendor->batas_waktu_penawaran)
+        ) {
+            $perbandingan_harga_vendor->update(['status_penawaran' => 'berakhir']);
+        }
+
+        return view('pages.perbandingan-vendor.konfirmasi', compact('perbandingan_harga_vendor'));
     }
 
     public function prosesKonfirmasiUndangan(Request $request, PerbandinganHargaVendor $perbandingan_harga_vendor)
     {
-        $request->validate([
-            'aksi' => 'required|in:setuju,tolak'
-        ]);
+        $aksi = $request->input('aksi');
 
-         /**
-         * @var \App\Models\User
-         */
-        $user = Auth::user();
-        if ($user->vendor->id !== $perbandingan_harga_vendor->vendor_id) {
-            abort(403);
+        if ($aksi === 'setuju') {
+            $perbandingan_harga_vendor->status_penawaran = 'disetujui';
+            $perbandingan_harga_vendor->tanggal_respon = now();
+            $perbandingan_harga_vendor->save();
+
+            return redirect()->route('perbandingan-harga.vendor.index')
+                ->with('success', 'Anda telah menyetujui undangan penawaran.');
         }
 
-        $perbandingan_harga_vendor->status_penawaran = $request->aksi === 'setuju' ? 'disetujui' : 'ditolak';
-        $perbandingan_harga_vendor->tanggal_respon = now();
-        $perbandingan_harga_vendor->save();
+        if ($aksi === 'tolak') {
+            $perbandingan_harga_vendor->status_penawaran = 'ditolak';
+            $perbandingan_harga_vendor->tanggal_respon = now();
+            $perbandingan_harga_vendor->save();
 
-        return redirect()->route('dashboard')->with('success', 'Konfirmasi berhasil dikirim.');
+            return redirect()->route('perbandingan-harga.vendor.index')
+                ->with('success', 'Anda telah menolak undangan penawaran.');
+        }
+
+        return redirect()->back()->with('error', 'Aksi tidak valid.');
+    }
+
+
+    public function isiHargaVendor(PerbandinganHargaVendor $perbandingan_harga_vendor)
+    {
+        $user = Auth::user();
+
+        if ($user->vendor->id !== $perbandingan_harga_vendor->vendor_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        // Validasi status & waktu
+        if ($perbandingan_harga_vendor->status_penawaran !== 'disetujui') {
+            return redirect()->route('dashboard')->with('error', 'Anda belum menyetujui undangan.');
+        }
+
+        if (now()->greaterThan($perbandingan_harga_vendor->batas_waktu_penawaran)) {
+            $perbandingan_harga_vendor->update(['status_penawaran' => 'berakhir']);
+            return redirect()->route('dashboard')->with('error', 'Batas waktu telah berakhir.');
+        }
+
+        $perbandingan = $perbandingan_harga_vendor->perbandinganHarga()
+            ->with('pengajuanDetail')
+            ->first();
+
+        // Ambil data item harga lama (kalau ada)
+        $itemHarga = $perbandingan_harga_vendor->perbandinganHargaItemBarang()
+            ->pluck('harga_satuan', 'pengajuan_barang_detail_id')
+            ->toArray();
+
+        return view('pages.perbandingan-vendor.isi-harga', [
+            'perbandingan_harga_vendor' => $perbandingan_harga_vendor,
+            'perbandingan' => $perbandingan,
+            'harga_satuan' => $itemHarga
+        ]);
+    }
+
+
+   public function simpanHargaVendor(Request $request, PerbandinganHargaVendor $perbandingan_harga_vendor)
+    {
+        $request->validate([
+            'ketentuan_pembayaran' => 'required|string',
+            'harga_satuan' => 'required|array',
+            'harga_satuan.*' => 'required|numeric|min:0',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Simpan ketentuan pembayaran ke tabel pivot
+            $perbandingan_harga_vendor->ketentuan_pembayaran = $request->ketentuan_pembayaran;
+            $perbandingan_harga_vendor->save();
+
+            // Ambil semua barang dari relasi pengajuan detail
+            $pengajuanDetail = $perbandingan_harga_vendor->perbandinganHarga->pengajuanDetail->keyBy('id');
+
+            foreach ($request->harga_satuan as $detail_id => $harga) {
+                // validasi bahwa barang ini memang termasuk ke pengajuan
+                if (!isset($pengajuanDetail[$detail_id])) {
+                    continue;
+                }
+
+                $barang = $pengajuanDetail[$detail_id];
+
+                // cari item lama
+                $item = $perbandingan_harga_vendor->perbandinganHargaItemBarang()
+                            ->where('pengajuan_barang_detail_id', $detail_id)
+                            ->first();
+
+                if ($item) {
+                    $item->update([
+                        'harga_satuan' => $harga,
+                        'jumlah' => $barang->jumlah,
+                        'nama_barang' => $barang->nama_barang,
+                        'spesifikasi' => $barang->spesifikasi,
+                    ]);
+                } else {
+                    // insert baru
+                    PerbandinganHargaItemBarang::create([
+                        'perbandingan_vendor_id' => $perbandingan_harga_vendor->id,
+                        'pengajuan_barang_detail_id' => $detail_id,
+                        'harga_satuan' => $harga,
+                        'jumlah' => $barang->jumlah,
+                        'nama_barang' => $barang->nama_barang,
+                        'spesifikasi' => $barang->spesifikasi,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->route('perbandingan-harga.vendor.index')
+                ->with('success', 'Harga berhasil disimpan.');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            logger()->error($th); // Tambahan log error
+            return back()->with('error', 'Gagal menyimpan: ' . $th->getMessage());
+        }
     }
 
 
@@ -282,7 +405,7 @@ class PerbandinganHargaController extends Controller
 
         // Semua valid, tampilkan form input harga
         $perbandingan_harga_vendor->load('perbandinganHargaItemBarang');
-        return view('pages.perbandingan-form-edit-vendor', [
+        return view('pages.perbandingan-vendor.edit', [
             'perbandingan_vendor' => $perbandingan_harga_vendor
         ]);
     }
@@ -334,15 +457,20 @@ class PerbandinganHargaController extends Controller
         }
     }
 
-    public function tandaiSelesai(PerbandinganHarga $perbandingan_harga)
+   public function tandaiSelesai(PerbandinganHarga $perbandingan_harga)
     {
         DB::beginTransaction();
         try {
+            // Tandai perbandingan selesai
             $perbandingan_harga->fill(['selesai' => 1])->save();
 
+            // Update status semua vendor menjadi 'berakhir'
+            $perbandingan_harga->perbandinganHargaVendor()->update(['status_penawaran' => 'berakhir']);
+
+            // Kirim notifikasi
             $target = User::role(['vendor_rekanan', 'divisi'])->get();
             $data_notif = [
-                'user' => Auth::user()->name, //diganti disini
+                'user' => Auth::user()->name,
                 'message' => "Perbandingan harga baru nomor $perbandingan_harga->nomor",
                 'redirect_url' => "pemesanan-barang/create?ref=notification&nomor=$perbandingan_harga->nomor"
             ];
@@ -355,5 +483,42 @@ class PerbandinganHargaController extends Controller
             return redirect()->back()->with('error', $th->getMessage());
         }
     }
-    
+
+    //controler untuk vendor
+    public function listVendorForVendor()
+    {
+        $user = Auth::user();
+        $vendor = $user->vendor;
+
+        if (!$vendor) {
+            abort(403, 'Akun Anda belum terhubung dengan data vendor.');
+        }
+
+        $vendorId = $vendor->id;
+
+        $list_penawaran = PerbandinganHarga::whereHas('perbandinganHargaVendor', function ($q) use ($vendorId) {
+                $q->where('vendor_id', $vendorId);
+            })
+            ->with(['perbandinganHargaVendor' => function ($q) use ($vendorId) {
+                $q->where('vendor_id', $vendorId);
+            }])
+            ->orderBy('tanggal', 'desc')
+            ->paginate(10);
+
+        return view('pages.perbandingan-vendor.index', compact('list_penawaran'));
+    }
+
+
+    public function previewVendor(PerbandinganHargaVendor $perbandingan_harga_vendor)
+    {
+        $user = Auth::user();
+        if ($user->vendor->id !== $perbandingan_harga_vendor->vendor_id) {
+            abort(403);
+        }
+
+        return view('pages.perbandingan-vendor.preview', [
+            'perbandingan_vendor' => $perbandingan_harga_vendor->load('perbandinganHargaItemBarang', 'vendor', 'perbandinganHarga')
+        ]);
+    }
+
 }
